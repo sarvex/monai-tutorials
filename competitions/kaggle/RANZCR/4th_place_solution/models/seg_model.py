@@ -70,25 +70,26 @@ class UNetDecoder(nn.Module):
         skip_channels = list(encoder_channels[1:-1][::-1]) + [0]
         halves = [True] * (len(skip_channels) - 1)
         halves.append(False)
-        blocks = []
-        for in_chn, skip_chn, out_chn, halve in zip(in_channels, skip_channels, decoder_channels, halves):
-            blocks.append(
-                UpCat(
-                    spatial_dims=dim,
-                    in_chns=in_chn,
-                    cat_chns=skip_chn,
-                    out_chns=out_chn,
-                    act=act,
-                    norm=norm,
-                    dropout=dropout,
-                    bias=bias,
-                    upsample=upsample,
-                    pre_conv=pre_conv,
-                    interp_mode=interp_mode,
-                    align_corners=align_corners,
-                    halves=halve,
-                )
+        blocks = [
+            UpCat(
+                spatial_dims=dim,
+                in_chns=in_chn,
+                cat_chns=skip_chn,
+                out_chns=out_chn,
+                act=act,
+                norm=norm,
+                dropout=dropout,
+                bias=bias,
+                upsample=upsample,
+                pre_conv=pre_conv,
+                interp_mode=interp_mode,
+                align_corners=align_corners,
+                halves=halve,
             )
+            for in_chn, skip_chn, out_chn, halve in zip(
+                in_channels, skip_channels, decoder_channels, halves
+            )
+        ]
         self.blocks = nn.ModuleList(blocks)
 
     def forward(self, *features: Sequence[torch.Tensor]):
@@ -141,10 +142,7 @@ class SegmentationHead(nn.Sequential):
                 pre_conv=None,
                 interp_mode=InterpolateMode.LINEAR,
             )
-        if act is not None:
-            act_layer = get_act_layer(act)
-        else:
-            act_layer = nn.Identity()
+        act_layer = get_act_layer(act) if act is not None else nn.Identity()
         super().__init__(conv_layer, up_layer, act_layer)
 
 
@@ -160,11 +158,7 @@ class RanzcrNet(nn.Module):
             backbone_out = 640
             encoder_channels = (1, 32, 48, 80, 224, 640)
             model_name = "efficientnet-b7"
-        if "ap" in cfg.backbone:
-            adv_prop = True
-        else:
-            adv_prop = False
-
+        adv_prop = "ap" in cfg.backbone
         self.encoder = EfficientNetBNFeatures(
             model_name=model_name,
             pretrained=cfg.pretrained,

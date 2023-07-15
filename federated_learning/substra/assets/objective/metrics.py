@@ -31,8 +31,7 @@ class MonaiMetrics(tools.Metrics):
                 )
                 metric_count += len(value)
                 metric_sum += value.item() * len(value)
-        metric = metric_sum / metric_count
-        return metric
+        return metric_sum / metric_count
 
 
 if __name__ == "__main__":

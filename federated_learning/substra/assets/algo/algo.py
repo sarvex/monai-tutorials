@@ -36,11 +36,7 @@ class MonaiAlgo(tools.algo.Algo):
 
     def train(self, X, y, models, rank):  # noqa: N803
         # create UNet, DiceLoss and Adam optimizer
-        if not models:
-            model, optimizer = self._get_model()
-        else:
-            model, optimizer = models[0]
-
+        model, optimizer = self._get_model() if not models else models[0]
         # start a typical PyTorch training
         epoch_loss = 0
         step = 0

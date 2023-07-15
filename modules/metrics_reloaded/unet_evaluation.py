@@ -44,17 +44,16 @@ def get_metrics_reloaded_dict(pth_ref, pth_pred):
         refs.append(ref)
         preds.append(pred)
 
-    dict_file = {}
-    dict_file["pred_loc"] = preds
-    dict_file["ref_loc"] = refs
-    dict_file["pred_prob"] = preds
-    dict_file["ref_class"] = refs
-    dict_file["pred_class"] = preds
-    dict_file["list_values"] = [1]
-    dict_file["file"] = pth_pred
-    dict_file["names"] = names
-
-    return dict_file
+    return {
+        "pred_loc": preds,
+        "ref_loc": refs,
+        "pred_prob": preds,
+        "ref_class": refs,
+        "pred_class": preds,
+        "list_values": [1],
+        "file": pth_pred,
+        "names": names,
+    }
 
 
 def main(tempdir, img_size=96):

@@ -48,13 +48,17 @@ def main():
 
     # generate env json file for image resampling
     out_file = "config/environment_luna16_prepare.json"
-    env_dict = {}
-    env_dict["orig_data_base_dir"] = raw_data_base_dir
-    env_dict["data_base_dir"] = resampled_data_base_dir
-    if dicom_meta_data_csv != None:
-        env_dict["data_list_file_path"] = os.path.join(downloaded_datasplit_dir, "dicom_original/dataset_fold0.json")
-    else:
-        env_dict["data_list_file_path"] = os.path.join(downloaded_datasplit_dir, "mhd_original/dataset_fold0.json")
+    env_dict = {
+        "orig_data_base_dir": raw_data_base_dir,
+        "data_base_dir": resampled_data_base_dir,
+        "data_list_file_path": os.path.join(
+            downloaded_datasplit_dir, "dicom_original/dataset_fold0.json"
+        )
+        if dicom_meta_data_csv != None
+        else os.path.join(
+            downloaded_datasplit_dir, "mhd_original/dataset_fold0.json"
+        ),
+    }
     if dicom_meta_data_csv != None:
         env_dict["dicom_meta_data_csv"] = dicom_meta_data_csv
     with open(out_file, "w") as outfile:
@@ -62,14 +66,20 @@ def main():
 
     # generate env json file for training and inference
     for fold in range(10):
-        out_file = "config/environment_luna16_fold" + str(fold) + ".json"
+        out_file = f"config/environment_luna16_fold{str(fold)}.json"
         env_dict = {}
-        env_dict["model_path"] = os.path.join(out_trained_models_dir, "model_luna16_fold" + str(fold) + ".pt")
+        env_dict["model_path"] = os.path.join(
+            out_trained_models_dir, f"model_luna16_fold{str(fold)}.pt"
+        )
         env_dict["data_base_dir"] = resampled_data_base_dir
-        env_dict["data_list_file_path"] = os.path.join(downloaded_datasplit_dir, "dataset_fold" + str(fold) + ".json")
-        env_dict["tfevent_path"] = os.path.join(out_tensorboard_events_dir, "luna16_fold" + str(fold))
+        env_dict["data_list_file_path"] = os.path.join(
+            downloaded_datasplit_dir, f"dataset_fold{str(fold)}.json"
+        )
+        env_dict["tfevent_path"] = os.path.join(
+            out_tensorboard_events_dir, f"luna16_fold{str(fold)}"
+        )
         env_dict["result_list_file_path"] = os.path.join(
-            out_inference_result_dir, "result_luna16_fold" + str(fold) + ".json"
+            out_inference_result_dir, f"result_luna16_fold{str(fold)}.json"
         )
         with open(out_file, "w") as outfile:
             json.dump(env_dict, outfile, indent=4)

@@ -67,7 +67,7 @@ def get_network(network, channels, dimensions):
             features = (32, 64, 128, 256, 512)
         else:
             features = (64, 128, 256, 512, 1024)
-        logging.info("Using Unet with features: {}".format(features))
+        logging.info(f"Using Unet with features: {features}")
         network = UNet(
             spatial_dims=dimensions,
             in_channels=3,
@@ -83,7 +83,7 @@ def get_network(network, channels, dimensions):
             features = (32, 64, 128, 256, 512, 32)
         else:
             features = (64, 128, 256, 512, 1024, 64)
-        logging.info("Using BasicUnet with features: {}".format(features))
+        logging.info(f"Using BasicUnet with features: {features}")
         network = BasicUNet(spatial_dims=dimensions, in_channels=3, out_channels=1, features=features)
     return network
 
@@ -144,7 +144,7 @@ def get_loaders(args, pre_transforms, train=True):
         datalist = json.load(f)
 
     total_d = len(datalist)
-    datalist = datalist[0 : args.limit] if args.limit else datalist
+    datalist = datalist[:args.limit] if args.limit else datalist
     total_l = len(datalist)
 
     if multi_gpu:
@@ -167,7 +167,7 @@ def get_loaders(args, pre_transforms, train=True):
         train_ds = PersistentDataset(train_datalist, pre_transforms, cache_dir=args.cache_dir)
         train_loader = DataLoader(train_ds, batch_size=args.batch, shuffle=True, num_workers=16)
         logging.info(
-            "{}:: Total Records used for Training is: {}/{}/{}".format(local_rank, len(train_ds), total_l, total_d)
+            f"{local_rank}:: Total Records used for Training is: {len(train_ds)}/{total_l}/{total_d}"
         )
     else:
         train_loader = None
@@ -176,7 +176,7 @@ def get_loaders(args, pre_transforms, train=True):
     val_ds = PersistentDataset(val_datalist, pre_transforms, cache_dir=args.cache_dir)
     val_loader = DataLoader(val_ds, batch_size=args.batch, num_workers=8)
     logging.info(
-        "{}:: Total Records used for Validation is: {}/{}/{}".format(local_rank, len(val_ds), total_l, total_d)
+        f"{local_rank}:: Total Records used for Validation is: {len(val_ds)}/{total_l}/{total_d}"
     )
 
     return train_loader, val_loader
@@ -189,7 +189,7 @@ def create_trainer(args):
     local_rank = args.local_rank
     if multi_gpu:
         dist.init_process_group(backend="nccl", init_method="env://")
-        device = torch.device("cuda:{}".format(local_rank))
+        device = torch.device(f"cuda:{local_rank}")
         torch.cuda.set_device(device)
     else:
         device = torch.device("cuda" if args.use_gpu else "cpu")
@@ -206,8 +206,8 @@ def create_trainer(args):
         network = torch.nn.parallel.DistributedDataParallel(network, device_ids=[local_rank], output_device=local_rank)
 
     if args.resume:
-        logging.info("{}:: Loading Network...".format(local_rank))
-        map_location = {"cuda:0": "cuda:{}".format(local_rank)}
+        logging.info(f"{local_rank}:: Loading Network...")
+        map_location = {"cuda:0": f"cuda:{local_rank}"}
         network.load_state_dict(torch.load(args.model_filepath, map_location=map_location))
 
     # define event-handlers for engine
@@ -269,7 +269,7 @@ def create_trainer(args):
     ]
     train_handlers = train_handlers if local_rank == 0 else train_handlers[:2]
 
-    trainer = SupervisedTrainer(
+    return SupervisedTrainer(
         device=device,
         max_epochs=args.epochs,
         train_data_loader=train_loader,
@@ -293,7 +293,6 @@ def create_trainer(args):
         },
         train_handlers=train_handlers,
     )
-    return trainer
 
 
 def run(args):
@@ -302,24 +301,24 @@ def run(args):
 
     if args.local_rank == 0:
         for arg in vars(args):
-            logging.info("USING:: {} = {}".format(arg, getattr(args, arg)))
+            logging.info(f"USING:: {arg} = {getattr(args, arg)}")
         print("")
 
     if args.export:
-        logging.info("{}:: Loading PT Model from: {}".format(args.local_rank, args.input))
+        logging.info(f"{args.local_rank}:: Loading PT Model from: {args.input}")
         device = torch.device("cuda" if args.use_gpu else "cpu")
         network = get_network(args.network, args.channels, args.dimensions).to(device)
 
-        map_location = {"cuda:0": "cuda:{}".format(args.local_rank)}
+        map_location = {"cuda:0": f"cuda:{args.local_rank}"}
         network.load_state_dict(torch.load(args.input, map_location=map_location))
 
-        logging.info("{}:: Saving TorchScript Model".format(args.local_rank))
+        logging.info(f"{args.local_rank}:: Saving TorchScript Model")
         model_ts = torch.jit.script(network)
         torch.jit.save(model_ts, os.path.join(args.output))
         return
 
     if not os.path.exists(args.output):
-        logging.info("output path [{}] does not exist. creating it now.".format(args.output))
+        logging.info(f"output path [{args.output}] does not exist. creating it now.")
         os.makedirs(args.output, exist_ok=True)
 
     trainer = create_trainer(args)
@@ -328,13 +327,13 @@ def run(args):
     trainer.run()
     end_time = time.time()
 
-    logging.info("Total Training Time {}".format(end_time - start_time))
+    logging.info(f"Total Training Time {end_time - start_time}")
     if args.local_rank == 0:
-        logging.info("{}:: Saving Final PT Model".format(args.local_rank))
+        logging.info(f"{args.local_rank}:: Saving Final PT Model")
         torch.save(trainer.network.state_dict(), os.path.join(args.output, "model-final.pt"))
 
     if not args.multi_gpu:
-        logging.info("{}:: Saving TorchScript Model".format(args.local_rank))
+        logging.info(f"{args.local_rank}:: Saving TorchScript Model")
         model_ts = torch.jit.script(trainer.network)
         torch.jit.save(model_ts, os.path.join(args.output, "model-final.ts"))
 

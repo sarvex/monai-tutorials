@@ -66,11 +66,7 @@ def prepare_dataloader(
         train_crop_transform = CenterSpatialCropd(keys=["image"], roi_size=patch_size)
         val_patch_size = patch_size
 
-    if amp:
-        compute_dtype = torch.float16
-    else:
-        compute_dtype = torch.float32
-
+    compute_dtype = torch.float16 if amp else torch.float32
     train_transforms = Compose(
         [
             LoadImaged(keys=["image"]),

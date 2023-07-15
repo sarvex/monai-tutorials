@@ -102,8 +102,7 @@ def main():
 
             vertices = []
             faces = []
-            _i = 0
-            for _vec in box_data:
+            for _i, _vec in enumerate(box_data):
                 vec = convert_box_mode(
                     np.expand_dims(np.array(_vec), axis=0),
                     src_mode=args.input_box_mode,
@@ -140,9 +139,7 @@ def main():
                     (4 + 8 * _i, 0 + 8 * _i, 3 + 8 * _i, 7 + 8 * _i),
                 ]
 
-                _i += 1
-
-            save_obj(vertices, faces, os.path.join(args.output_dir, box_filename + ".obj"))
+            save_obj(vertices, faces, os.path.join(args.output_dir, f"{box_filename}.obj"))
 
     return
 

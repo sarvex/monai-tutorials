@@ -187,7 +187,7 @@ def main():
         if ddp_bool:
             train_loader.sampler.set_epoch(epoch)
             val_loader.sampler.set_epoch(epoch)
-        for step, batch in enumerate(train_loader):
+        for batch in train_loader:
             images = batch["image"].to(device)
             optimizer_diff.zero_grad(set_to_none=True)
 
@@ -205,10 +205,7 @@ def main():
                 ).long()
 
                 # Get model prediction
-                if ddp_bool:
-                    inferer_autoencoder = autoencoder.module
-                else:
-                    inferer_autoencoder = autoencoder
+                inferer_autoencoder = autoencoder.module if ddp_bool else autoencoder
                 noise_pred = inferer(
                     inputs=images,
                     autoencoder_model=inferer_autoencoder,
@@ -249,10 +246,7 @@ def main():
                         ).long()
 
                         # Get model prediction
-                        if ddp_bool:
-                            inferer_autoencoder = autoencoder.module
-                        else:
-                            inferer_autoencoder = autoencoder
+                        inferer_autoencoder = autoencoder.module if ddp_bool else autoencoder
                         noise_pred = inferer(
                             inputs=images,
                             autoencoder_model=inferer_autoencoder,
@@ -275,7 +269,7 @@ def main():
                             torch.save(unet.state_dict(), trained_diffusion_path_last)
 
                         # save best model
-                        if val_recon_epoch_loss < best_val_recon_epoch_loss and rank == 0:
+                        if val_recon_epoch_loss < best_val_recon_epoch_loss:
                             best_val_recon_epoch_loss = val_recon_epoch_loss
                             if ddp_bool:
                                 torch.save(unet.module.state_dict(), trained_diffusion_path)
@@ -287,19 +281,17 @@ def main():
                                 trained_diffusion_path,
                             )
 
-                        # visualize synthesized image
-                        if (epoch) % (val_interval) == 0:  # time cost of synthesizing images is large
-                            synthetic_images = inferer.sample(
-                                input_noise=noise[0:1, ...],
-                                autoencoder_model=inferer_autoencoder,
-                                diffusion_model=unet,
-                                scheduler=scheduler,
-                            )
-                            tensorboard_writer.add_image(
-                                "val_diff_synimg",
-                                visualize_2d_image(synthetic_images[0, 0, ...]).transpose([2, 1, 0]),
-                                epoch,
-                            )
+                        synthetic_images = inferer.sample(
+                            input_noise=noise[0:1, ...],
+                            autoencoder_model=inferer_autoencoder,
+                            diffusion_model=unet,
+                            scheduler=scheduler,
+                        )
+                        tensorboard_writer.add_image(
+                            "val_diff_synimg",
+                            visualize_2d_image(synthetic_images[0, 0, ...]).transpose([2, 1, 0]),
+                            epoch,
+                        )
 
 
 if __name__ == "__main__":

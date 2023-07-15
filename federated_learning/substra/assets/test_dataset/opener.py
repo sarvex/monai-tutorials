@@ -49,9 +49,9 @@ class MonaiTestOpener(tools.Opener):
         )
 
         ds = CacheDataset(data=files, transform=transforms)
-        loader = DataLoader(ds, batch_size=1, num_workers=4, collate_fn=list_data_collate)
-
-        return loader
+        return DataLoader(
+            ds, batch_size=1, num_workers=4, collate_fn=list_data_collate
+        )
 
     def _get_X_iterator(self, loader):  # noqa: N802
         for data in loader:

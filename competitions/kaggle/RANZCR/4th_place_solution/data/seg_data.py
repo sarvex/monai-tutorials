@@ -104,15 +104,14 @@ class CustomDataset(Dataset):
 
             if self.cfg.seg_dim > 3:
                 idx = np.where(self.label_cols == data["label"])[0][0]
+            elif "ETT" in data["label"] or self.cfg.seg_dim == 1:
+                idx = 0
+            elif "NGT" in data["label"]:
+                idx = 1
+            elif "CVC" in data["label"]:
+                idx = 2
             else:
-                if "ETT" in data["label"] or self.cfg.seg_dim == 1:
-                    idx = 0
-                elif "NGT" in data["label"]:
-                    idx = 1
-                elif "CVC" in data["label"]:
-                    idx = 2
-                else:
-                    continue
+                continue
 
             mask[:, :, idx][:, :, None] = np.max([mask[:, :, idx][:, :, None], m], axis=0)
 

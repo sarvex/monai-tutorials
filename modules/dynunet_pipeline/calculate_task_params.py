@@ -35,7 +35,7 @@ def get_task_params(args):
     root_dir = args.root_dir
     datalist_path = args.datalist_path
     dataset_path = os.path.join(root_dir, task_name[task_id])
-    datalist_name = "dataset_task{}.json".format(task_id)
+    datalist_name = f"dataset_task{task_id}.json"
 
     # get all training data
     datalist = load_decathlon_datalist(os.path.join(datalist_path, datalist_name), True, "training", dataset_path)

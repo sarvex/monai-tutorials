@@ -45,18 +45,18 @@ def prepare_datalist(args):
     dataset_json = os.path.join(args.output, "dataset.json")
     with open(dataset_json) as f:
         datalist = json.load(f)
-    logging.info("+++ Dataset File: {}".format(dataset_json))
-    logging.info("+++ Total Records: {}".format(len(datalist)))
+    logging.info(f"+++ Dataset File: {dataset_json}")
+    logging.info(f"+++ Total Records: {len(datalist)}")
     logging.info("")
 
 
 def run(args):
     for arg in vars(args):
-        logging.info("USING:: {} = {}".format(arg, getattr(args, arg)))
+        logging.info(f"USING:: {arg} = {getattr(args, arg)}")
     logging.info("")
 
     if not os.path.exists(args.output):
-        logging.info("output path [{}] does not exist. creating it now.".format(args.output))
+        logging.info(f"output path [{args.output}] does not exist. creating it now.")
         os.makedirs(args.output, exist_ok=True)
     prepare_datalist(args)
 

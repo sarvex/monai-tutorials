@@ -135,7 +135,12 @@ class EnsembleTrainTask:
         networks = []
         for i in range(args.n_splits):
             _network = inference_workflow.network_def.to(device)
-            _network.load_state_dict(torch.load(self.bundle_path + f"/models/model_fold{i}.pt", map_location=device))
+            _network.load_state_dict(
+                torch.load(
+                    f"{self.bundle_path}/models/model_fold{i}.pt",
+                    map_location=device,
+                )
+            )
             networks.append(_network)
 
         inference_workflow.evaluator = EnsembleEvaluator(
@@ -157,8 +162,7 @@ class EnsembleTrainTask:
             return
 
         train_ds, val_ds = self._partition_datalist(datalist[:7], n_splits=args.n_splits)
-        fold = 0
-        for _train_ds, _val_ds in zip(train_ds, val_ds):
+        for fold, (_train_ds, _val_ds) in enumerate(zip(train_ds, val_ds)):
             max_epochs = args.epochs
             multi_gpu = args.multi_gpu
             multi_gpu = multi_gpu if torch.cuda.device_count() > 1 else False
@@ -234,8 +238,6 @@ class EnsembleTrainTask:
             _model_path = f"{self.bundle_path}/models/model.pt"
             os.rename(_model_path, f"{self.bundle_path}/models/model_fold{fold}.pt")
             logger.info(f"Fold {fold} Training Finished....")
-            fold += 1
-
         if test_datalist is not None:
             device = self._device(args.device)
             self.ensemble_inference(device, test_datalist, ensemble=args.ensemble)
@@ -244,8 +246,7 @@ class EnsembleTrainTask:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True, env=env)
         while process.poll() is None:
             line = process.stdout.readline()
-            line = line.rstrip()
-            if line:
+            if line := line.rstrip():
                 print(line, flush=True)
 
         logger.info(f"Return code: {process.returncode}")
@@ -290,7 +291,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     gpus = list(range(torch.cuda.device_count())) if args.gpus == "all" else [int(g) for g in args.gpus.split(",")]
     os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(x) for x in gpus)
-    datalist_path = args.dataset_dir + "/dataset.json"
+    datalist_path = f"{args.dataset_dir}/dataset.json"
     with open(datalist_path) as fp:
         datalist = json.load(fp)
 

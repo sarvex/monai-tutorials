@@ -106,9 +106,7 @@ class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
     def __call__(self, data):
         d = dict(data)
         for key in self.keys:
-            result = []
-            # merge label 2 and label 3 to construct TC
-            result.append(torch.logical_or(d[key] == 2, d[key] == 3))
+            result = [torch.logical_or(d[key] == 2, d[key] == 3)]
             # merge labels 1, 2 and 3 to construct WT
             result.append(torch.logical_or(torch.logical_or(d[key] == 2, d[key] == 3), d[key] == 1))
             # label 2 is ET

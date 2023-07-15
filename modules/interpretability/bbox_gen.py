@@ -24,6 +24,7 @@ The original dataset could be downloaded via the MONAI API:
 
 """
 
+
 import glob
 import os
 import sys
@@ -44,11 +45,11 @@ from monai.utils import set_determinism
 # optionally give folder
 folder = sys.argv[1] if len(sys.argv) > 1 else "."
 # create output folder
-os.makedirs(folder + "/patch", exist_ok=True)
+os.makedirs(f"{folder}/patch", exist_ok=True)
 set_determinism(0)
 
-image_names = sorted(glob.glob(folder + "/Task06_Lung/imagesTr/*"))
-label_names = sorted(glob.glob(folder + "/Task06_Lung/labelsTr/*"))
+image_names = sorted(glob.glob(f"{folder}/Task06_Lung/imagesTr/*"))
+label_names = sorted(glob.glob(f"{folder}/Task06_Lung/labelsTr/*"))
 if len(image_names) * len(label_names) == 0:
     raise AssertionError("no images and/or labels found")
 

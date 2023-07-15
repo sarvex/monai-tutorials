@@ -109,7 +109,7 @@ def main():
                 subj_id = meta_dict["/".join(batch_data_i["image_meta_dict"]["filename_or_obj"].split("/")[-3:])]
                 new_path = os.path.join(args.data_base_dir, subj_id)
                 Path(new_path).mkdir(parents=True, exist_ok=True)
-                new_filename = os.path.join(new_path, subj_id + ".nii.gz")
+                new_filename = os.path.join(new_path, f"{subj_id}.nii.gz")
                 writer = NibabelWriter()
                 writer.set_data_array(data_array=batch_data_i["image"])
                 writer.set_metadata(meta_dict=batch_data_i["image"].meta)

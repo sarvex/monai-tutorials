@@ -23,13 +23,11 @@ def readCSV(filename):
     try:
         with open(filename, "rb") as f:
             csvreader = csv.reader(f)
-            for line in csvreader:
-                lines.append(line)
+            lines.extend(iter(csvreader))
     except:
         with open(filename, "r") as f:
             csvreader = csv.reader(f)
-            for line in csvreader:
-                lines.append(line)
+            lines.extend(iter(csvreader))
     return lines
 
 

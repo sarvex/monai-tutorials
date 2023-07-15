@@ -43,7 +43,7 @@ def validation(args):
 
     # produce the network
     checkpoint = args.checkpoint
-    val_output_dir = "./runs_{}_fold{}_{}/".format(task_id, args.fold, args.expr_name)
+    val_output_dir = f"./runs_{task_id}_fold{args.fold}_{args.expr_name}/"
 
     if multi_gpu_flag:
         dist.init_process_group(backend="nccl", init_method="env://")
@@ -92,7 +92,7 @@ def validation(args):
         results = evaluator.state.metric_details["val_mean_dice"]
         if num_classes > 2:
             for i in range(num_classes - 1):
-                print("mean dice for label {} is {}".format(i + 1, results[:, i].mean()))
+                print(f"mean dice for label {i + 1} is {results[:, i].mean()}")
 
     if multi_gpu_flag:
         dist.destroy_process_group()
@@ -102,8 +102,8 @@ def train(args):
     # load hyper parameters
     task_id = args.task_id
     fold = args.fold
-    val_output_dir = "./runs_{}_fold{}_{}/".format(task_id, fold, args.expr_name)
-    log_filename = "nnunet_task{}_fold{}.log".format(task_id, fold)
+    val_output_dir = f"./runs_{task_id}_fold{fold}_{args.expr_name}/"
+    log_filename = f"nnunet_task{task_id}_fold{fold}.log"
     log_filename = os.path.join(val_output_dir, log_filename)
     interval = args.interval
     learning_rate = args.learning_rate
@@ -118,8 +118,8 @@ def train(args):
     eval_overlap = args.eval_overlap
     local_rank = args.local_rank
     determinism_flag = args.determinism_flag
-    determinism_seed = args.determinism_seed
     if determinism_flag:
+        determinism_seed = args.determinism_seed
         set_determinism(seed=determinism_seed)
         if local_rank == 0:
             print("Using deterministic training.")

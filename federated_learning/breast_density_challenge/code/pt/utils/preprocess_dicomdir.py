@@ -41,10 +41,7 @@ def preprocess(dicom_root, out_path, ids, images, densities, process_image=True)
         if process_image:
             _success, _dc_tags = dicom_preprocess(img_file[0], save_prefix)
         else:
-            if os.path.isfile(save_prefix + ".npy"):
-                _success = True
-            else:
-                _success = False
+            _success = bool(os.path.isfile(save_prefix + ".npy"))
             _dc_tags = []
         if _success and density >= 1:  # label can be 0 sometimes, excluding those cases
             dc_tags.append(_dc_tags)

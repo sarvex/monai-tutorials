@@ -28,8 +28,7 @@ def set_seed(seed):
 
 
 def get_train_dataset(train_df, cfg):
-    train_dataset = CustomDataset(train_df, cfg, aug=cfg.train_aug, mode="train")
-    return train_dataset
+    return CustomDataset(train_df, cfg, aug=cfg.train_aug, mode="train")
 
 
 def get_train_dataloader(train_dataset, cfg):
@@ -48,8 +47,7 @@ def get_train_dataloader(train_dataset, cfg):
 
 
 def get_val_dataset(val_df, cfg):
-    val_dataset = CustomDataset(val_df, cfg, aug=cfg.val_aug, mode="val")
-    return val_dataset
+    return CustomDataset(val_df, cfg, aug=cfg.val_aug, mode="val")
 
 
 def get_val_dataloader(val_dataset, cfg):
@@ -66,35 +64,29 @@ def get_val_dataloader(val_dataset, cfg):
 
 
 def get_test_dataset(test_df, cfg):
-    test_dataset = CustomDataset(test_df, cfg, aug=cfg.test_aug, mode="test")
-    return test_dataset
+    return CustomDataset(test_df, cfg, aug=cfg.test_aug, mode="test")
 
 
 def get_test_dataloader(test_dataset, cfg):
-    test_dataloader = DataLoader(
+    return DataLoader(
         test_dataset,
         shuffle=False,
         batch_size=cfg.batch_size,
         num_workers=cfg.num_workers,
     )
-    return test_dataloader
 
 
 def get_optimizer(model, cfg):
     params = model.parameters()
-    optimizer = optim.Adam(params, lr=cfg.lr, weight_decay=cfg.weight_decay)
-
-    return optimizer
+    return optim.Adam(params, lr=cfg.lr, weight_decay=cfg.weight_decay)
 
 
 def get_scheduler(cfg, optimizer, total_steps):
-    scheduler = WarmupCosineSchedule(
+    return WarmupCosineSchedule(
         optimizer,
         warmup_steps=cfg.warmup * (total_steps // cfg.batch_size),
         t_total=cfg.epochs * (total_steps // cfg.batch_size),
     )
-
-    return scheduler
 
 
 def create_checkpoint(model, optimizer, epoch, scheduler=None, scaler=None):

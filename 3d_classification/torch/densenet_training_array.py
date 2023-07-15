@@ -83,12 +83,12 @@ def main():
     # start a typical PyTorch training
     val_interval = 2
     best_metric = -1
-    epoch_loss_values = list()
-    metric_values = list()
+    epoch_loss_values = []
+    metric_values = []
     writer = SummaryWriter()
     for epoch in range(5):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{5}")
+        print(f"epoch {epoch + 1}/5")
         model.train()
         epoch_loss = 0
         step = 0

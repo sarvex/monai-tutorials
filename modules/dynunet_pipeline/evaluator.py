@@ -135,16 +135,15 @@ class DynUNetEvaluator(SupervisedEvaluator):
             pred = nn.functional.softmax(pred, dim=1)
             if not self.tta_val:
                 return pred
-            else:
-                for dims in [[2], [3], [4], (2, 3), (2, 4), (3, 4), (2, 3, 4)]:
-                    flip_inputs = torch.flip(inputs, dims=dims)
-                    flip_pred = torch.flip(self.inferer(flip_inputs, self.network).cpu(), dims=dims)
-                    flip_pred = nn.functional.softmax(flip_pred, dim=1)
-                    del flip_inputs
-                    pred += flip_pred
-                    del flip_pred
-                    ct += 1
-                return pred / ct
+            for dims in [[2], [3], [4], (2, 3), (2, 4), (3, 4), (2, 3, 4)]:
+                flip_inputs = torch.flip(inputs, dims=dims)
+                flip_pred = torch.flip(self.inferer(flip_inputs, self.network).cpu(), dims=dims)
+                flip_pred = nn.functional.softmax(flip_pred, dim=1)
+                del flip_inputs
+                pred += flip_pred
+                del flip_pred
+                ct += 1
+            return pred / ct
 
         # execute forward computation
         with eval_mode(self.network):

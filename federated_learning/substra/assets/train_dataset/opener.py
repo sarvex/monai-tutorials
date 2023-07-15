@@ -59,7 +59,7 @@ class MonaiTrainOpener(tools.Opener):
         )
 
         ds = CacheDataset(data=files, transform=transforms)
-        loader = DataLoader(
+        return DataLoader(
             ds,
             batch_size=2,
             shuffle=True,
@@ -68,11 +68,8 @@ class MonaiTrainOpener(tools.Opener):
             pin_memory=torch.cuda.is_available(),
         )
 
-        return loader
-
     def get_X(self, folders):  # noqa: N802
-        loader = self._get_loader(folders)
-        return loader
+        return self._get_loader(folders)
 
     def get_y(self, folders):
         return None

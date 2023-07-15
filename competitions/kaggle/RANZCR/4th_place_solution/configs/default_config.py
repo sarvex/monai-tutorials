@@ -16,9 +16,9 @@ cfg = SimpleNamespace(**{})
 
 # data path
 cfg.data_dir = "/workspace/data/ranzcr/"
-cfg.data_folder = cfg.data_dir + "train/"
-cfg.train_df = cfg.data_dir + "train_folds.csv"
-cfg.test_df = cfg.data_dir + "sample_submission.csv"
+cfg.data_folder = f"{cfg.data_dir}train/"
+cfg.train_df = f"{cfg.data_dir}train_folds.csv"
+cfg.test_df = f"{cfg.data_dir}sample_submission.csv"
 cfg.output_dir = "./output/weights/"
 
 # dataset

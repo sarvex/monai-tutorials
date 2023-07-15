@@ -27,7 +27,7 @@ def inference(args):
     # load hyper parameters
     task_id = args.task_id
     checkpoint = args.checkpoint
-    val_output_dir = "./runs_{}_fold{}_{}/".format(args.task_id, args.fold, args.expr_name)
+    val_output_dir = f"./runs_{args.task_id}_fold{args.fold}_{args.expr_name}/"
     sw_batch_size = args.sw_batch_size
     infer_output_dir = os.path.join(val_output_dir, task_name[task_id])
     window_mode = args.window_mode

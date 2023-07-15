@@ -65,10 +65,10 @@ def get_xforms(mode="train", keys=("image", "label")):
             ]
         )
         dtype = (torch.float32, torch.uint8)
-    if mode == "val":
-        dtype = (torch.float32, torch.uint8)
     if mode == "infer":
         dtype = (torch.float32,)
+    elif mode == "val":
+        dtype = (torch.float32, torch.uint8)
     xforms.extend([CastToTyped(keys, dtype=dtype)])
     return monai.transforms.Compose(xforms)
 
@@ -77,14 +77,13 @@ def get_net():
     """returns a unet model instance."""
 
     num_classes = 2
-    net = monai.networks.nets.BasicUNet(
+    return monai.networks.nets.BasicUNet(
         spatial_dims=3,
         in_channels=1,
         out_channels=num_classes,
         features=(32, 32, 64, 128, 256, 32),
         dropout=0.1,
     )
-    return net
 
 
 def get_inferer(_mode=None):
@@ -92,14 +91,13 @@ def get_inferer(_mode=None):
 
     patch_size = (192, 192, 16)
     sw_batch_size, overlap = 2, 0.5
-    inferer = monai.inferers.SlidingWindowInferer(
+    return monai.inferers.SlidingWindowInferer(
         roi_size=patch_size,
         sw_batch_size=sw_batch_size,
         overlap=overlap,
         mode="gaussian",
         padding_mode="replicate",
     )
-    return inferer
 
 
 class DiceCELoss(nn.Module):

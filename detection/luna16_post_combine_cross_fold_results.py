@@ -43,7 +43,7 @@ def main():
             for subj in result["validation"]:
                 seriesuid = os.path.split(subj["image"])[-1][:-7]
                 for b in range(len(subj["box"])):
-                    spamwriter.writerow([seriesuid] + subj["box"][b][0:3] + [subj["score"][b]])
+                    spamwriter.writerow([seriesuid] + subj["box"][b][:3] + [subj["score"][b]])
 
 
 if __name__ == "__main__":

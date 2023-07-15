@@ -29,11 +29,8 @@ def get_data(args, batch_size=1, mode="train"):
     multi_gpu_flag = args.multi_gpu
 
     transform = get_task_transforms(mode, task_id, *transform_params)
-    if mode == "test":
-        list_key = "test"
-    else:
-        list_key = "{}_fold{}".format(mode, fold)
-    datalist_name = "dataset_task{}.json".format(task_id)
+    list_key = "test" if mode == "test" else f"{mode}_fold{fold}"
+    datalist_name = f"dataset_task{task_id}.json"
 
     property_keys = [
         "name",
@@ -94,6 +91,6 @@ def get_data(args, batch_size=1, mode="train"):
             drop_last=True,
         )
     else:
-        raise ValueError(f"mode should be train, validation or test.")
+        raise ValueError("mode should be train, validation or test.")
 
     return properties, data_loader
