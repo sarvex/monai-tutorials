@@ -330,7 +330,7 @@ class MammoLearner(Learner):
         model_weights = self.model.state_dict()
         save_dict = {"model_weights": model_weights, "epoch": self.epoch_global}
         if is_best:
-            save_dict.update({"best_acc": self.best_metric})
+            save_dict["best_acc"] = self.best_metric
             torch.save(save_dict, self.best_local_model_file)
         else:
             torch.save(save_dict, self.local_model_file)
@@ -362,7 +362,7 @@ class MammoLearner(Learner):
                     # update the local dict
                     local_var_dict[var_name] = torch.as_tensor(global_weights[var_name])
                 except Exception as e:
-                    raise ValueError("Convert weight from {} failed with error: {}".format(var_name, str(e)))
+                    raise ValueError(f"Convert weight from {var_name} failed with error: {str(e)}")
         self.model.load_state_dict(local_var_dict)
 
         # local steps
@@ -412,27 +412,26 @@ class MammoLearner(Learner):
 
     def get_model_for_validation(self, model_name: str, fl_ctx: FLContext) -> Shareable:
         # Retrieve the best local model saved during training.
-        if model_name == ModelName.BEST_MODEL:
-            model_data = None
-            try:
-                # load model to cpu as server might or might not have a GPU
-                model_data = torch.load(self.best_local_model_file, map_location="cpu")
-            except Exception as e:
-                self.log_error(fl_ctx, f"Unable to load best model: {e}")
-
-            # Create DXO and shareable from model data.
-            if model_data:
-                dxo = DXO(data_kind=DataKind.WEIGHTS, data=model_data["model_weights"])
-                return dxo.to_shareable()
-            else:
-                # Set return code.
-                self.log_error(
-                    fl_ctx,
-                    f"best local model not found at {self.best_local_model_file}.",
-                )
-                return make_reply(ReturnCode.EXECUTION_RESULT_ERROR)
-        else:
+        if model_name != ModelName.BEST_MODEL:
             raise ValueError(f"Unknown model_type: {model_name}")  # Raised errors are caught in LearnerExecutor class.
+        model_data = None
+        try:
+            # load model to cpu as server might or might not have a GPU
+            model_data = torch.load(self.best_local_model_file, map_location="cpu")
+        except Exception as e:
+            self.log_error(fl_ctx, f"Unable to load best model: {e}")
+
+        # Create DXO and shareable from model data.
+        if model_data:
+            dxo = DXO(data_kind=DataKind.WEIGHTS, data=model_data["model_weights"])
+            return dxo.to_shareable()
+        else:
+            # Set return code.
+            self.log_error(
+                fl_ctx,
+                f"best local model not found at {self.best_local_model_file}.",
+            )
+            return make_reply(ReturnCode.EXECUTION_RESULT_ERROR)
 
     def local_valid(
         self,
@@ -457,13 +456,15 @@ class MammoLearner(Learner):
                 outputs = torch.softmax(self.model(inputs), dim=1)
                 probs = outputs.detach().cpu().numpy()
                 # make json serializable
-                for _img_file, _probs in zip(batch_data["image_meta_dict"]["filename_or_obj"], probs):
-                    return_probs.append(
-                        {
-                            "image": os.path.basename(_img_file),
-                            "probs": [float(p) for p in _probs],
-                        }
+                return_probs.extend(
+                    {
+                        "image": os.path.basename(_img_file),
+                        "probs": [float(p) for p in _probs],
+                    }
+                    for _img_file, _probs in zip(
+                        batch_data["image_meta_dict"]["filename_or_obj"], probs
                     )
+                )
                 if not return_probs_only:
                     _, _pred_label = torch.max(outputs.data, 1)
                     _labels = batch_data["label"].to(self.device)
@@ -473,15 +474,14 @@ class MammoLearner(Learner):
                     pred_labels.extend(_pred_label.detach().cpu().numpy())
             if return_probs_only:
                 return return_probs  # create a list of image names and probs
-            else:
-                acc = correct / float(total)
-                assert len(labels) == total
-                assert len(pred_labels) == total
-                kappa = cohen_kappa_score(labels, pred_labels, weights="linear")
-                if tb_id:
-                    self.writer.add_scalar(tb_id + "_acc", acc, self.epoch_global)
-                    self.writer.add_scalar(tb_id + "_kappa", kappa, self.epoch_global)
-                return acc, kappa
+            acc = correct / float(total)
+            assert len(labels) == total
+            assert len(pred_labels) == total
+            kappa = cohen_kappa_score(labels, pred_labels, weights="linear")
+            if tb_id:
+                self.writer.add_scalar(f"{tb_id}_acc", acc, self.epoch_global)
+                self.writer.add_scalar(f"{tb_id}_kappa", kappa, self.epoch_global)
+            return acc, kappa
 
     def validate(self, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
         # Check abort signal
@@ -515,7 +515,7 @@ class MammoLearner(Learner):
                     local_var_dict[var_name] = torch.as_tensor(torch.reshape(weights, local_var_dict[var_name].shape))
                     n_loaded += 1
                 except Exception as e:
-                    raise ValueError("Convert weight from {} failed with error: {}".format(var_name, str(e)))
+                    raise ValueError(f"Convert weight from {var_name} failed with error: {str(e)}")
         self.model.load_state_dict(local_var_dict)
         if n_loaded == 0:
             raise ValueError(f"No weights loaded for validation! Received weight dict is {global_weights}")

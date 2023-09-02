@@ -226,18 +226,15 @@ class MONAILabelClient:
         :param session_id: Session ID (use existing session id instead of image_id)
         :return: response_file (label mask), response_body (json result/output params)
         """
-        selector = "/infer/{}?image={}".format(
-            MONAILabelUtils.urllib_quote_plus(model),
-            MONAILabelUtils.urllib_quote_plus(image_id),
-        )
+        selector = f"/infer/{MONAILabelUtils.urllib_quote_plus(model)}?image={MONAILabelUtils.urllib_quote_plus(image_id)}"
         if session_id:
             selector += f"&session_id={MONAILabelUtils.urllib_quote_plus(session_id)}"
 
         params = self._update_client_id(params)
         fields = {"params": json.dumps(params) if params else "{}"}
-        files = {"label": label_in} if label_in else {}
-        files.update({"file": file} if file and not session_id else {})
-
+        files = ({"label": label_in} if label_in else {}) | (
+            {"file": file} if file and not session_id else {}
+        )
         status, form, files = MONAILabelUtils.http_multipart("POST", self._server_url, selector, fields, files)
         if status != 200:
             raise MONAILabelClientException(
@@ -263,10 +260,7 @@ class MONAILabelClient:
         :param session_id: Session ID (use existing session id instead of image_id)
         :return: response_file (None), response_body
         """
-        selector = "/infer/wsi/{}?image={}".format(
-            MONAILabelUtils.urllib_quote_plus(model),
-            MONAILabelUtils.urllib_quote_plus(image_id),
-        )
+        selector = f"/infer/wsi/{MONAILabelUtils.urllib_quote_plus(model)}?image={MONAILabelUtils.urllib_quote_plus(image_id)}"
         if session_id:
             selector += f"&session_id={MONAILabelUtils.urllib_quote_plus(session_id)}"
         if output:
@@ -392,7 +386,7 @@ class MONAILabelUtils:
 
         parsed = urlparse(server_url)
         path = parsed.path.rstrip("/")
-        selector = path + "/" + selector.lstrip("/")
+        selector = f"{path}/" + selector.lstrip("/")
         logging.debug(f"URI Path: {selector}")
 
         parsed = urlparse(server_url)
@@ -435,7 +429,7 @@ class MONAILabelUtils:
 
         parsed = urlparse(server_url)
         path = parsed.path.rstrip("/")
-        selector = path + "/" + selector.lstrip("/")
+        selector = f"{path}/" + selector.lstrip("/")
         logging.debug(f"URI Path: {selector}")
 
         if parsed.scheme == "https":
@@ -459,14 +453,13 @@ class MONAILabelUtils:
         logging.debug(f"HTTP Response Content-Type: {response_content_type}")
 
         if "multipart" in response_content_type:
-            if response.status == 200:
-                form, files = MONAILabelUtils.parse_multipart(response.fp if response.fp else response, response.msg)
-                logging.debug(f"Response FORM: {form}")
-                logging.debug(f"Response FILES: {files.keys()}")
-                return response.status, form, files
-            else:
+            if response.status != 200:
                 return response.status, response.read(), None
 
+            form, files = MONAILabelUtils.parse_multipart(response.fp if response.fp else response, response.msg)
+            logging.debug(f"Response FORM: {form}")
+            logging.debug(f"Response FILES: {files.keys()}")
+            return response.status, form, files
         logging.debug("Reading status/content from simple response!")
         return response.status, response.read(), None
 
@@ -496,10 +489,14 @@ class MONAILabelUtils:
         limit = "----------lImIt_of_THE_fIle_eW_$"
         lines = []
         for key, value in fields.items():
-            lines.append("--" + limit)
-            lines.append('Content-Disposition: form-data; name="%s"' % key)
-            lines.append("")
-            lines.append(value)
+            lines.extend(
+                (
+                    f"--{limit}",
+                    f'Content-Disposition: form-data; name="{key}"',
+                    "",
+                    value,
+                )
+            )
         for key, filename in files.items():
             if isinstance(filename, tuple):
                 filename, data = filename
@@ -507,20 +504,22 @@ class MONAILabelUtils:
                 with open(filename, mode="rb") as f:
                     data = f.read()
 
-            lines.append("--" + limit)
-            lines.append(f'Content-Disposition: form-data; name="{key}"; filename="{filename}"')
-            lines.append("Content-Type: %s" % MONAILabelUtils.get_content_type(filename))
-            lines.append("")
-            lines.append(data)
-        lines.append("--" + limit + "--")
-        lines.append("")
-
+            lines.extend(
+                (
+                    f"--{limit}",
+                    f'Content-Disposition: form-data; name="{key}"; filename="{filename}"',
+                    f"Content-Type: {MONAILabelUtils.get_content_type(filename)}",
+                    "",
+                    data,
+                )
+            )
+        lines.extend((f"--{limit}--", ""))
         body = bytearray()
         for line in lines:
             body.extend(line if isinstance(line, bytes) else line.encode("utf-8"))
             body.extend(b"\r\n")
 
-        content_type = "multipart/form-data; boundary=%s" % limit
+        content_type = f"multipart/form-data; boundary={limit}"
         return content_type, body
 
     @staticmethod

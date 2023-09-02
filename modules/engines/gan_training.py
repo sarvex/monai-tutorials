@@ -144,7 +144,7 @@ def main():
 
     # initialize current run dir
     run_dir = "model_out"
-    print("Saving model output to: %s " % run_dir)
+    print(f"Saving model output to: {run_dir} ")
 
     # create workflow handlers
     handlers = [

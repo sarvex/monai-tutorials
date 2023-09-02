@@ -195,7 +195,7 @@ def run_eval(model, val_dataloader, cfg, writer, epoch, metric):
     progress_bar = tqdm(range(len(val_dataloader)))
     tr_it = iter(val_dataloader)
 
-    for itr in progress_bar:
+    for _ in progress_bar:
         batch = next(tr_it)
         inputs, labels = batch["input"].to(cfg.device), batch["label"].to(cfg.device)
         outputs = model(inputs)

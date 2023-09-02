@@ -131,11 +131,11 @@ def evaluate(args):
 
     model.eval()
     with torch.no_grad():
+        sw_batch_size = 4
         for val_data in val_loader:
             val_images, val_labels = val_data["img"].to(device), val_data["seg"].to(device)
             # define sliding window size and batch size for windows inference
             roi_size = (96, 96, 96)
-            sw_batch_size = 4
             val_outputs = sliding_window_inference(val_images, roi_size, sw_batch_size, model)
             val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
             dice_metric(y_pred=val_outputs, y=val_labels)

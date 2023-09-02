@@ -139,9 +139,11 @@ class InferenceWorkflow(BundleWorkflow):
 
     def get_handlers(self):
         return [
-            # use the logger "eval_log" defined at the beginning of this program
             StatsHandler(name="eval_log", output_transform=lambda x: None),
-            CheckpointLoader(load_path=self.bundle_root + "/models/model.pt", load_dict={"net": self.network_def}),
+            CheckpointLoader(
+                load_path=f"{self.bundle_root}/models/model.pt",
+                load_dict={"net": self.network_def},
+            ),
         ]
 
     def get_dataset(self):
@@ -173,7 +175,11 @@ class InferenceWorkflow(BundleWorkflow):
                 Activationsd(keys="pred", sigmoid=True),
                 AsDiscreted(keys="pred", threshold=0.5),
                 KeepLargestConnectedComponentd(keys="pred", applied_labels=[1]),
-                SaveImaged(keys="pred", meta_keys="image_meta_dict", output_dir=self.bundle_root + "/preds/"),
+                SaveImaged(
+                    keys="pred",
+                    meta_keys="image_meta_dict",
+                    output_dir=f"{self.bundle_root}/preds/",
+                ),
             ]
         )
 

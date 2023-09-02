@@ -31,8 +31,10 @@ def main():
     )
     args = parser.parse_args()
 
-    resource = "https://msd-for-monai.s3-us-west-2.amazonaws.com/" + args.msd_task + ".tar"
-    compressed_file = os.path.join(args.root, args.msd_task + ".tar")
+    resource = (
+        f"https://msd-for-monai.s3-us-west-2.amazonaws.com/{args.msd_task}.tar"
+    )
+    compressed_file = os.path.join(args.root, f"{args.msd_task}.tar")
     if not os.path.exists(args.root):
         download_and_extract(resource, compressed_file, args.root)
 

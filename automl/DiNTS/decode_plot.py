@@ -62,20 +62,16 @@ def plot_graph(
     ga = Digraph("G", filename=filename, engine="neato")
     depth = (len(code2in) + 2) // 3
 
-    # build a initial block
-    inputs = []
-    for _ in range(depth):
-        inputs.append("(in," + str(_) + ")")
-
+    inputs = [f"(in,{str(_)})" for _ in range(depth)]
     with ga.subgraph(name="cluster_all") as g:
         with g.subgraph(name="cluster_init") as c:
             for idx, _ in enumerate(inputs):
-                c.node(_, pos="0," + str(depth - idx) + "!")
+                c.node(_, pos=f"0,{str(depth - idx)}!")
         for blk_idx in range(arch_code_a.shape[0]):
-            with g.subgraph(name="cluster" + str(blk_idx)) as c:
+            with g.subgraph(name=f"cluster{str(blk_idx)}") as c:
                 outputs = [str((blk_idx, _)) for _ in range(depth)]
                 for idx, _ in enumerate(outputs):
-                    c.node(_, pos=str(2 + 2 * blk_idx) + "," + str(depth - idx) + "!")
+                    c.node(_, pos=f"{str(2 + 2 * blk_idx)},{str(depth - idx)}!")
                 for res_idx, activation in enumerate(arch_code_a[blk_idx]):
                     if activation:
                         c.edge(

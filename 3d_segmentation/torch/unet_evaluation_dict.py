@@ -89,11 +89,11 @@ def main(tempdir):
 
     model.eval()
     with torch.no_grad():
+        sw_batch_size = 4
         for val_data in val_loader:
             val_images, val_labels = val_data["img"].to(devices[0]), val_data["seg"].to(devices[0])
             # define sliding window size and batch size for windows inference
             roi_size = (96, 96, 96)
-            sw_batch_size = 4
             val_outputs = sliding_window_inference(val_images, roi_size, sw_batch_size, model)
             val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
             val_labels = decollate_batch(val_labels)

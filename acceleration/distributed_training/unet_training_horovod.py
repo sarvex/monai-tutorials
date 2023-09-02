@@ -148,10 +148,10 @@ def train(args):
     optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
     # start a typical PyTorch training
-    epoch_loss_values = list()
+    epoch_loss_values = []
     for epoch in range(5):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{5}")
+        print(f"epoch {epoch + 1}/5")
         model.train()
         epoch_loss = 0
         step = 0

@@ -151,13 +151,13 @@ def train(args):
     model = DistributedDataParallel(model, device_ids=[device])
 
     # start a typical PyTorch training
-    epoch_loss_values = list()
+    epoch_loss_values = []
     # start the replacement thread of SmartCache
     train_ds.start()
 
     for epoch in range(5):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{5}")
+        print(f"epoch {epoch + 1}/5")
         model.train()
         epoch_loss = 0
         step = 0

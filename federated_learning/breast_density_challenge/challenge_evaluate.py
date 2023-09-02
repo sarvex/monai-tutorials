@@ -40,15 +40,16 @@ def read_prediction(filename, gt, model_name):
     with open(filename, "r") as f:
         data = json.load(f)
 
-    result = {}
-    for s in site_names:
-        result[s] = {
+    result = {
+        s: {
             "pred_probs": [],
             "gt_labels": [],
             "pred_probs_bin": [],
             "gt_labels_bin": [],
             "patient_ids": [],
         }
+        for s in site_names
+    }
     for site in data.keys():
         for item in data[site][model_name]["test_probs"]:
             # multi-class
@@ -62,7 +63,9 @@ def read_prediction(filename, gt, model_name):
 
             # binary (non-dense vs dense)
             result[site]["pred_probs_bin"].append(np.sum(item["probs"][2::]))  # prob for dense (class 3 and 4).
-            if gt_label.item() in [0, 1]:  # non-dense (class 1 and 2)
+            if gt_label.item() == 0:  # non-dense (class 1 and 2)
+                result[site]["gt_labels_bin"].append(0)
+            elif gt_label.item() == 1:  # non-dense (class 1 and 2)
                 result[site]["gt_labels_bin"].append(0)
             elif gt_label.item() in [2, 3]:  # dense (class 3 and 4)
                 result[site]["gt_labels_bin"].append(1)
@@ -87,11 +90,7 @@ def evaluate(site_result):
     gt_labels_bin = site_result["gt_labels_bin"]
     pred_probs_bin = site_result["pred_probs_bin"]
 
-    # get pred labels
-    pred_labels = []
-    for prob in pred_probs:
-        pred_labels.append(np.argmax(prob))
-
+    pred_labels = [np.argmax(prob) for prob in pred_probs]
     assert len(gt_labels) == len(pred_labels) == len(gt_labels_bin) == len(pred_probs_bin)
 
     # multi-class metrics

@@ -106,7 +106,7 @@ def main():
     writer = SummaryWriter()
     for epoch in range(5):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{5}")
+        print(f"epoch {epoch + 1}/5")
         model.train()
         epoch_loss = 0
         step = 0

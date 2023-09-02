@@ -100,12 +100,12 @@ def main(tempdir):
     val_interval = 2
     best_metric = -1
     best_metric_epoch = -1
-    epoch_loss_values = list()
-    metric_values = list()
+    epoch_loss_values = []
+    metric_values = []
     writer = SummaryWriter()
     for epoch in range(10):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{10}")
+        print(f"epoch {epoch + 1}/10")
         model.train()
         epoch_loss = 0
         step = 0
@@ -131,10 +131,10 @@ def main(tempdir):
                 val_images = None
                 val_labels = None
                 val_outputs = None
+                sw_batch_size = 4
                 for val_data in val_loader:
                     val_images, val_labels = val_data[0].to(device), val_data[1].to(device)
                     roi_size = (96, 96)
-                    sw_batch_size = 4
                     val_outputs = sliding_window_inference(val_images, roi_size, sw_batch_size, model)
                     val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
                     # compute metric for current iteration

@@ -49,25 +49,20 @@ def create_datalist(
     all_keys_sorted = np.sort(keys)
     kfold = KFold(n_splits=num_folds, shuffle=True, random_state=seed)
     for i, (train_idx, test_idx) in enumerate(kfold.split(all_keys_sorted)):
-        val_data = []
-        train_data = []
         train_keys = np.array(all_keys_sorted)[train_idx]
         test_keys = np.array(all_keys_sorted)[test_idx]
-        for key in test_keys:
-            val_data.append(dataset_train_dict[key])
-        for key in train_keys:
-            train_data.append(dataset_train_dict[key])
-
-        dataset_with_folds["validation_fold{}".format(i)] = val_data
-        dataset_with_folds["train_fold{}".format(i)] = train_data
+        val_data = [dataset_train_dict[key] for key in test_keys]
+        train_data = [dataset_train_dict[key] for key in train_keys]
+        dataset_with_folds[f"validation_fold{i}"] = val_data
+        dataset_with_folds[f"train_fold{i}"] = train_data
     del dataset
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    with open(os.path.join(output_dir, "dataset_task{}.json".format(task_id)), "w") as f:
+    with open(os.path.join(output_dir, f"dataset_task{task_id}.json"), "w") as f:
         json.dump(dataset_with_folds, f)
-        print("data list for {} has been created!".format(task_name[task_id]))
+        print(f"data list for {task_name[task_id]} has been created!")
         f.close()
 
 

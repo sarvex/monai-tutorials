@@ -54,13 +54,12 @@ def count_matches(filename, start, end, keyword, cell_type="markdown", field="so
 
                 if nestkey is None:
                     content = cell[field]
+                elif isinstance(cell[field], dict):
+                    content = cell[field][nestkey]
+                elif isinstance(cell[field], list):
+                    content = [v for v in cell[field] if isinstance(v, dict) and nestkey in v]
                 else:
-                    if isinstance(cell[field], dict):
-                        content = cell[field][nestkey]
-                    elif isinstance(cell[field], list):
-                        content = [v for v in cell[field] if isinstance(v, dict) and nestkey in v]
-                    else:
-                        raise ValueError(f"{type(cell[field])} is not dict or list.")
+                    raise ValueError(f"{type(cell[field])} is not dict or list.")
                 occurrences.append(len(re.findall(keyword_rawstring, str(content))))  # value can be list of dict
 
     return occurrences

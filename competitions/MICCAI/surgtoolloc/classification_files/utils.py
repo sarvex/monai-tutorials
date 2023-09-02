@@ -22,10 +22,7 @@ class SurgDataset(Dataset):
     def __init__(self, cfg, df, mode):
         self.df = df
         self.cfg = cfg
-        if mode == "train":
-            self.transform = cfg.train_aug
-        else:
-            self.transform = cfg.val_aug
+        self.transform = cfg.train_aug if mode == "train" else cfg.val_aug
 
     def __len__(self):
         return len(self.df)
@@ -45,7 +42,7 @@ def set_seed(seed):
 
 
 def get_train_dataloader(train_dataset, cfg):
-    train_dataloader = DataLoader(
+    return DataLoader(
         train_dataset,
         sampler=None,
         shuffle=True,
@@ -56,11 +53,9 @@ def get_train_dataloader(train_dataset, cfg):
         drop_last=True,
     )
 
-    return train_dataloader
-
 
 def get_val_dataloader(val_dataset, cfg):
-    val_dataloader = DataLoader(
+    return DataLoader(
         val_dataset,
         shuffle=False,
         batch_size=cfg.batch_size,
@@ -68,8 +63,6 @@ def get_val_dataloader(val_dataset, cfg):
         pin_memory=False,
         collate_fn=None,
     )
-
-    return val_dataloader
 
 
 def create_checkpoint(model, optimizer, epoch, scheduler=None, scaler=None):
@@ -88,11 +81,7 @@ def create_checkpoint(model, optimizer, epoch, scheduler=None, scaler=None):
 
 
 def mixup_data(x, y, alpha=1.0, use_cuda=True):
-    if alpha > 0:
-        lam = np.random.beta(alpha, alpha)
-    else:
-        lam = 1
-
+    lam = np.random.beta(alpha, alpha) if alpha > 0 else 1
     batch_size = x.size()[0]
     if use_cuda:
         index = torch.randperm(batch_size).cuda()

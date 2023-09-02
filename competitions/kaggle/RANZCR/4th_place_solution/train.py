@@ -82,11 +82,7 @@ def main(cfg):
     scheduler = get_scheduler(cfg, optimizer, total_steps)
 
     # set other tools
-    if cfg.mixed_precision:
-        scaler = GradScaler()
-    else:
-        scaler = None
-
+    scaler = GradScaler() if cfg.mixed_precision else None
     writer = SummaryWriter(str(cfg.output_dir + f"/fold{cfg.fold}/"))
 
     # train and val loop
@@ -120,8 +116,8 @@ def main(cfg):
                 epoch=epoch,
             )
 
-        if cfg.train_val is True:
-            if (epoch + 1) % cfg.eval_train_epochs == 0 or (epoch + 1) == cfg.epochs:
+        if (epoch + 1) % cfg.eval_train_epochs == 0 or (epoch + 1) == cfg.epochs:
+            if cfg.train_val is True:
                 train_val_loss = run_eval(model, train_val_dataloader, cfg, writer, epoch)
                 print(f"train_val_loss {train_val_loss:.5}")
 
@@ -242,17 +238,11 @@ def run_infer(weights_folder_path, cfg):
 
     to_device_transform = ToDeviced(keys=("input", "target", "mask", "is_annotated"), device=cfg.device)
 
-    all_path = []
-    for path in glob.iglob(os.path.join(weights_folder_path, "*.pth")):
-        all_path.append(path)
-
+    all_path = list(glob.iglob(os.path.join(weights_folder_path, "*.pth")))
     nets = []
     for path in all_path:
         state_dict = torch.load(path)["model"]
-        new_state_dict = {}
-        for k, v in state_dict.items():
-            new_state_dict[k.replace("module.", "")] = v
-
+        new_state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
         net = RanzcrNet(cfg).eval().to(cfg.device)
         net.load_state_dict(new_state_dict)
 
@@ -266,7 +256,7 @@ def run_infer(weights_folder_path, cfg):
     test_dataloader = get_test_dataloader(test_dataset, cfg)
 
     with torch.no_grad():
-        fold_preds = [[] for i in range(len(nets))]
+        fold_preds = [[] for _ in range(len(nets))]
         for batch in tqdm(test_dataloader):
             batch = to_device_transform(batch)
             for i, net in enumerate(nets):

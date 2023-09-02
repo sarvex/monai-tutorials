@@ -233,10 +233,9 @@ class TrainWorkflow(BundleWorkflow):
 
     def get_val_handlers(self):
         return [
-            # use the logger "train_log" defined at the beginning of this program
             StatsHandler(name="train_log", output_transform=lambda x: None),
             CheckpointSaver(
-                save_dir=self.bundle_root + "/models/",
+                save_dir=f"{self.bundle_root}/models/",
                 save_dict={"net": self.network},
                 save_key_metric=True,
                 key_metric_filename="model.pt",

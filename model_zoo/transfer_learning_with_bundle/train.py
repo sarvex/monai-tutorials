@@ -174,8 +174,8 @@ def main(tempdir, load_pretrained_ckpt=False):
     val_interval = 5
     best_metric = -1
     best_metric_epoch = -1
-    epoch_loss_values = list()
-    metric_values = list()
+    epoch_loss_values = []
+    metric_values = []
     writer = SummaryWriter()
     for epoch in range(max_epochs):
         print("-" * 10)
@@ -205,10 +205,10 @@ def main(tempdir, load_pretrained_ckpt=False):
                 val_images = None
                 val_labels = None
                 val_outputs = None
+                sw_batch_size = 4
                 for val_data in val_loader:
                     val_images, val_labels = val_data["image"].to(device), val_data["label"].to(device)
                     roi_size = (96, 96, 96)
-                    sw_batch_size = 4
                     val_outputs = sliding_window_inference(val_images, roi_size, sw_batch_size, model)
                     val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
                     # compute metric for current iteration
@@ -223,7 +223,7 @@ def main(tempdir, load_pretrained_ckpt=False):
                     best_metric = metric
                     best_metric_epoch = epoch + 1
                     torch.save(model.state_dict(), save_model)
-                    print("saved new best metric model to " + save_model)
+                    print(f"saved new best metric model to {save_model}")
                 print(
                     "current epoch: {} current mean dice: {:.4f} best mean dice: {:.4f} at epoch {}".format(
                         epoch + 1, metric, best_metric, best_metric_epoch

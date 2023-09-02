@@ -185,7 +185,7 @@ def main():
             # if ddp, distribute data across n gpus
             train_loader.sampler.set_epoch(epoch)
             val_loader.sampler.set_epoch(epoch)
-        for step, batch in enumerate(train_loader):
+        for batch in train_loader:
             images = batch["image"].to(device)
 
             # train Generator part
@@ -254,7 +254,7 @@ def main():
                     torch.save(autoencoder.state_dict(), trained_g_path_last)
                     torch.save(discriminator.state_dict(), trained_d_path_last)
                 # save best model
-                if val_recon_epoch_loss < best_val_recon_epoch_loss and rank == 0:
+                if val_recon_epoch_loss < best_val_recon_epoch_loss:
                     best_val_recon_epoch_loss = val_recon_epoch_loss
                     if ddp_bool:
                         torch.save(autoencoder.module.state_dict(), trained_g_path)

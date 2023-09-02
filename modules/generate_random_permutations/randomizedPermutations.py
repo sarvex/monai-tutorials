@@ -94,8 +94,10 @@ class AugmentData(object):
         return transform_list
 
     def create_native_transform_list(self):
-        transform_list = Compose(self.image_loading_transforms + [ScaleIntensity(), Resize(self.output_size)])
-        return transform_list
+        return Compose(
+            self.image_loading_transforms
+            + [ScaleIntensity(), Resize(self.output_size)]
+        )
 
     def __call__(self, image_file_list, *args, **kwargs):
         image_file_list = image_file_list
@@ -105,7 +107,7 @@ class AugmentData(object):
             native_transform_list = self.create_native_transform_list()
             native_img = native_transform_list(img)
             IMG = IMG + native_img
-            for i in range(self.num_augmentations):
+            for _ in range(self.num_augmentations):
                 shuffle(self.aug_seq)
                 transform_list = self.create_transform_list(self.aug_seq)
                 img_augmentated = Compose(transform_list)(img)
@@ -113,13 +115,12 @@ class AugmentData(object):
 
         random.shuffle(IMG)
         ALLIMG_NP = np.stack(IMG, axis=0)
-        OUT_IMAGE_NP = ALLIMG_NP[0 : self.batch_size, :]
-        return OUT_IMAGE_NP
+        return ALLIMG_NP[0 : self.batch_size, :]
 
 
 def main():
     image_dir = "./exampleImages"
-    image_file_list = glob.glob(image_dir + "/*.png")
+    image_file_list = glob.glob(f"{image_dir}/*.png")
     output_size = (400, 400)
     transform_list = [RandFlip(), Rotate(20), NormalizeIntensity(), Rotate90()]
 

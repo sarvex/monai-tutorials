@@ -54,10 +54,7 @@ train_dataset_key = client.add_dataset(
         "type": "3D images",
         "data_opener": ASSETS_DIR / "train_dataset" / "opener.py",
         "objective_key": None,
-        "permissions": {
-            "public": True,
-            "authorized_ids": list(),
-        },
+        "permissions": {"public": True, "authorized_ids": []},
     },
     exist_ok=True,
 )
@@ -87,10 +84,7 @@ test_dataset_key = client.add_dataset(
         "type": "3D images",
         "data_opener": ASSETS_DIR / "test_dataset" / "opener.py",
         "objective_key": None,
-        "permissions": {
-            "public": True,
-            "authorized_ids": list(),
-        },
+        "permissions": {"public": True, "authorized_ids": []},
     },
     exist_ok=True,
 )
@@ -128,10 +122,7 @@ objective_key = client.add_objective(
         "metrics": metrics_archive,
         "test_data_manager_key": test_dataset_key,
         "test_data_sample_keys": test_data_sample_keys,
-        "permissions": {
-            "public": True,
-            "authorized_ids": list(),
-        },
+        "permissions": {"public": True, "authorized_ids": []},
     },
     exist_ok=True,
 )
@@ -150,10 +141,7 @@ algo_key = client.add_algo(
         "name": "UNet",
         "description": ASSETS_DIR / "algo" / "description.md",
         "file": algo_archive,
-        "permissions": {
-            "public": True,
-            "authorized_ids": list(),
-        },
+        "permissions": {"public": True, "authorized_ids": []},
     },
     exist_ok=True,
 )

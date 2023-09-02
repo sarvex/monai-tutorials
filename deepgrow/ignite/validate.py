@@ -52,7 +52,7 @@ def create_validator(args, click):
     network = train.get_network(args.network, args.channels, args.dimensions).to(device)
 
     logging.info("Loading Network...")
-    map_location = {"cuda:0": "cuda:{}".format(args.local_rank)}
+    map_location = {"cuda:0": f"cuda:{args.local_rank}"}
 
     checkpoint = torch.load(args.model_path, map_location=map_location)
     network.load_state_dict(checkpoint)
@@ -61,7 +61,7 @@ def create_validator(args, click):
     # define event-handlers for engine
     _, val_loader = train.get_loaders(args, pre_transforms, train=False)
     fold_size = int(len(val_loader.dataset) / args.batch / args.folds) if args.folds else 0
-    logging.info("Using Fold-Size: {}".format(fold_size))
+    logging.info(f"Using Fold-Size: {fold_size}")
 
     val_handlers = [
         StatsHandler(output_transform=lambda x: None),
@@ -83,11 +83,13 @@ def create_validator(args, click):
 
     post_transform = Compose(post_transform_list)
 
-    evaluator = SupervisedEvaluator(
+    return SupervisedEvaluator(
         device=device,
         val_data_loader=val_loader,
         network=network,
-        iteration_update=Interaction(transforms=click_transforms, max_interactions=click, train=False),
+        iteration_update=Interaction(
+            transforms=click_transforms, max_interactions=click, train=False
+        ),
         inferer=SimpleInferer(),
         postprocessing=post_transform,
         val_handlers=val_handlers,
@@ -98,7 +100,6 @@ def create_validator(args, click):
             )
         },
     )
-    return evaluator
 
 
 def run(args):
@@ -107,17 +108,17 @@ def run(args):
 
     if args.local_rank == 0:
         for arg in vars(args):
-            logging.info("USING:: {} = {}".format(arg, getattr(args, arg)))
+            logging.info(f"USING:: {arg} = {getattr(args, arg)}")
         print("")
 
     if not os.path.exists(args.output):
-        logging.info("output path [{}] does not exist. creating it now.".format(args.output))
+        logging.info(f"output path [{args.output}] does not exist. creating it now.")
         os.makedirs(args.output, exist_ok=True)
 
     clicks = json.loads(args.max_val_interactions)
     for click in clicks:
         logging.info("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        logging.info("                CLICKS = {}".format(click))
+        logging.info(f"                CLICKS = {click}")
         logging.info("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
         evaluator = create_validator(args, click)
 
@@ -125,7 +126,7 @@ def run(args):
         evaluator.run()
         end_time = time.time()
 
-        logging.info("Total Run Time {}".format(end_time - start_time))
+        logging.info(f"Total Run Time {end_time - start_time}")
 
 
 def strtobool(val):

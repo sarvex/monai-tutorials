@@ -36,11 +36,7 @@ from task_params import clip_values, normalize_values, patch_size, spacing
 
 
 def get_task_transforms(mode, task_id, pos_sample_num, neg_sample_num, num_samples):
-    if mode != "test":
-        keys = ["image", "label"]
-    else:
-        keys = ["image"]
-
+    keys = ["image", "label"] if mode != "test" else ["image"]
     load_transforms = [
         LoadImaged(keys=keys),
         EnsureChannelFirstd(keys=keys),
@@ -284,8 +280,7 @@ class PreprocessAnisotropic(MapTransform):
 
     def calculate_new_shape(self, spacing, shape):
         spacing_ratio = np.array(spacing) / np.array(self.target_spacing)
-        new_shape = (spacing_ratio * np.array(shape)).astype(int).tolist()
-        return new_shape
+        return (spacing_ratio * np.array(shape)).astype(int).tolist()
 
     def check_anisotrophy(self, spacing):
         def check(spacing):

@@ -121,8 +121,10 @@ def main():
                 print(f"Latent feature shape {z.shape}")
                 for axis in range(3):
                     tensorboard_writer.add_image(
-                        "train_img_" + str(axis),
-                        visualize_one_slice_in_3d_image(check_data["image"][0, 0, ...], axis).transpose([2, 1, 0]),
+                        f"train_img_{str(axis)}",
+                        visualize_one_slice_in_3d_image(
+                            check_data["image"][0, 0, ...], axis
+                        ).transpose([2, 1, 0]),
                         1,
                     )
                 print(f"Scaling factor set to {1/torch.std(z)}")
@@ -168,14 +170,14 @@ def main():
     total_step = 0
     best_val_recon_epoch_loss = 100.0
 
+    epoch_loss = 0
     for epoch in range(n_epochs):
         unet.train()
-        epoch_loss = 0
         lr_scheduler.step()
         if ddp_bool:
             train_loader.sampler.set_epoch(epoch)
             val_loader.sampler.set_epoch(epoch)
-        for step, batch in enumerate(train_loader):
+        for batch in train_loader:
             images = batch["image"].to(device)
             optimizer_diff.zero_grad(set_to_none=True)
 
@@ -190,10 +192,7 @@ def main():
                 ).long()
 
                 # Get model prediction
-                if ddp_bool:
-                    inferer_autoencoder = autoencoder.module
-                else:
-                    inferer_autoencoder = autoencoder
+                inferer_autoencoder = autoencoder.module if ddp_bool else autoencoder
                 noise_pred = inferer(
                     inputs=images,
                     autoencoder_model=inferer_autoencoder,
@@ -231,10 +230,7 @@ def main():
                         ).long()
 
                         # Get model prediction
-                        if ddp_bool:
-                            inferer_autoencoder = autoencoder.module
-                        else:
-                            inferer_autoencoder = autoencoder
+                        inferer_autoencoder = autoencoder.module if ddp_bool else autoencoder
                         noise_pred = inferer(
                             inputs=images,
                             autoencoder_model=inferer_autoencoder,
@@ -257,7 +253,7 @@ def main():
                             torch.save(unet.state_dict(), trained_diffusion_path_last)
 
                         # save best model
-                        if val_recon_epoch_loss < best_val_recon_epoch_loss and rank == 0:
+                        if val_recon_epoch_loss < best_val_recon_epoch_loss:
                             best_val_recon_epoch_loss = val_recon_epoch_loss
                             if ddp_bool:
                                 torch.save(unet.module.state_dict(), trained_diffusion_path)
@@ -276,10 +272,10 @@ def main():
                             )
                             for axis in range(3):
                                 tensorboard_writer.add_image(
-                                    "val_diff_synimg_" + str(axis),
-                                    visualize_one_slice_in_3d_image(synthetic_images[0, 0, ...], axis).transpose(
-                                        [2, 1, 0]
-                                    ),
+                                    f"val_diff_synimg_{str(axis)}",
+                                    visualize_one_slice_in_3d_image(
+                                        synthetic_images[0, 0, ...], axis
+                                    ).transpose([2, 1, 0]),
                                     epoch,
                                 )
 

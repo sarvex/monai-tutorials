@@ -69,11 +69,7 @@ def main():
     set_determinism(seed=0)
 
     amp = True
-    if amp:
-        compute_dtype = torch.float16
-    else:
-        compute_dtype = torch.float32
-
+    compute_dtype = torch.float16 if amp else torch.float32
     monai.config.print_config()
     torch.backends.cudnn.benchmark = True
     torch.set_num_threads(4)
@@ -328,8 +324,10 @@ def main():
                 for val_data in val_loader:
                     # if all val_data_i["image"] smaller than args.val_patch_size, no need to use inferer
                     # otherwise, need inferer to handle large input images.
-                    use_inferer = not all(
-                        [val_data_i["image"][0, ...].numel() < np.prod(args.val_patch_size) for val_data_i in val_data]
+                    use_inferer = any(
+                        val_data_i["image"][0, ...].numel()
+                        >= np.prod(args.val_patch_size)
+                        for val_data_i in val_data
                     )
                     val_inputs = [val_data_i.pop("image").to(device) for val_data_i in val_data]
 
@@ -379,7 +377,7 @@ def main():
 
             # write to tensorboard event
             for k in val_epoch_metric_dict.keys():
-                tensorboard_writer.add_scalar("val_" + k, val_epoch_metric_dict[k], epoch + 1)
+                tensorboard_writer.add_scalar(f"val_{k}", val_epoch_metric_dict[k], epoch + 1)
             val_epoch_metric = val_epoch_metric_dict.values()
             val_epoch_metric = sum(val_epoch_metric) / len(val_epoch_metric)
             tensorboard_writer.add_scalar("val_metric", val_epoch_metric, epoch + 1)

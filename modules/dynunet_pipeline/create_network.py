@@ -70,7 +70,7 @@ def get_network(properties, task_id, pretrain_path, checkpoint=None):
         pretrain_path = os.path.join(pretrain_path, checkpoint)
         if os.path.exists(pretrain_path):
             net.load_state_dict(torch.load(pretrain_path))
-            print("pretrained checkpoint: {} loaded".format(pretrain_path))
+            print(f"pretrained checkpoint: {pretrain_path} loaded")
         else:
             print("no pretrained checkpoint")
     return net

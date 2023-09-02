@@ -179,7 +179,7 @@ def main():
             # if ddp, distribute data across n gpus
             train_loader.sampler.set_epoch(epoch)
             val_loader.sampler.set_epoch(epoch)
-        for step, batch in enumerate(train_loader):
+        for batch in train_loader:
             images = batch["image"].to(device)
 
             # train Generator part
@@ -248,7 +248,7 @@ def main():
                     torch.save(autoencoder.state_dict(), trained_g_path_last)
                     torch.save(discriminator.state_dict(), trained_d_path_last)
                 # save best model
-                if val_recon_epoch_loss < best_val_recon_epoch_loss and rank == 0:
+                if val_recon_epoch_loss < best_val_recon_epoch_loss:
                     best_val_recon_epoch_loss = val_recon_epoch_loss
                     if ddp_bool:
                         torch.save(autoencoder.module.state_dict(), trained_g_path)
@@ -264,13 +264,17 @@ def main():
                 tensorboard_writer.add_scalar("val_recon_loss", val_recon_epoch_loss, epoch)
                 for axis in range(3):
                     tensorboard_writer.add_image(
-                        "val_img_" + str(axis),
-                        visualize_one_slice_in_3d_image(images[0, 0, ...], axis).transpose([2, 1, 0]),
+                        f"val_img_{str(axis)}",
+                        visualize_one_slice_in_3d_image(
+                            images[0, 0, ...], axis
+                        ).transpose([2, 1, 0]),
                         epoch,
                     )
                     tensorboard_writer.add_image(
-                        "val_recon_" + str(axis),
-                        visualize_one_slice_in_3d_image(reconstruction[0, 0, ...], axis).transpose([2, 1, 0]),
+                        f"val_recon_{str(axis)}",
+                        visualize_one_slice_in_3d_image(
+                            reconstruction[0, 0, ...], axis
+                        ).transpose([2, 1, 0]),
                         epoch,
                     )
 

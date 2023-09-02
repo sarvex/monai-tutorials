@@ -44,8 +44,8 @@ def main():
     root_dir = tempfile.mkdtemp() if directory is None else directory
 
     msd_task = "Task01_BrainTumour"
-    resource = "https://msd-for-monai.s3-us-west-2.amazonaws.com/" + msd_task + ".tar"
-    compressed_file = os.path.join(root_dir, msd_task + ".tar")
+    resource = f"https://msd-for-monai.s3-us-west-2.amazonaws.com/{msd_task}.tar"
+    compressed_file = os.path.join(root_dir, f"{msd_task}.tar")
 
     os.makedirs(args.data_base_dir, exist_ok=True)
     download_and_extract(resource, compressed_file, args.data_base_dir)

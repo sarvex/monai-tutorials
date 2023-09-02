@@ -55,15 +55,15 @@ if not os.path.isdir(img_save_add):
     os.makedirs(img_save_add)
 report_files = [f for f in listdir(report_file_add) if isfile(join(report_file_add, f))]
 
-train_data = np.load(npy_add + "train.npy", allow_pickle=True).item()
+train_data = np.load(f"{npy_add}train.npy", allow_pickle=True).item()
 train_data_id = train_data["id_GT"]
 train_data_gt = train_data["label_GT"]
 
-val_data = np.load(npy_add + "validation.npy", allow_pickle=True).item()
+val_data = np.load(f"{npy_add}validation.npy", allow_pickle=True).item()
 val_data_id = val_data["id_GT"]
 val_data_gt = val_data["label_GT"]
 
-test_data = np.load(npy_add + "test.npy", allow_pickle=True).item()
+test_data = np.load(f"{npy_add}test.npy", allow_pickle=True).item()
 test_data_id = test_data["id_GT"]
 test_data_gt = test_data["label_GT"]
 
@@ -82,7 +82,7 @@ gt_list_val = []
 gt_list_test = []
 
 for file in report_files:
-    print("Processing {}".format(file))
+    print(f"Processing {file}")
     add_xml = os.path.join(report_file_add, file)
     docs = minidom.parse(add_xml)
     tree = ET.parse(add_xml)
@@ -90,12 +90,9 @@ for file in report_files:
         i = 0
         for elem in node.iter():
             if elem.attrib["Label"] == "FINDINGS":
-                if elem.text == None:
-                    report = "FINDINGS : "
-                else:
-                    report = "FINDINGS : " + elem.text
+                report = "FINDINGS : " if elem.text is None else "FINDINGS : " + elem.text
             elif elem.attrib["Label"] == "IMPRESSION":
-                if elem.text == None:
+                if elem.text is None:
                     report = report + " IMPRESSION : "
                 else:
                     report = report + " IMPRESSION : " + elem.text

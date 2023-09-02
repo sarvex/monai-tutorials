@@ -71,18 +71,16 @@ def generate_detection_train_transform(
     Return:
         training transform for detection
     """
-    if amp:
-        compute_dtype = torch.float16
-    else:
-        compute_dtype = torch.float32
-
-    train_transforms = Compose(
+    compute_dtype = torch.float16 if amp else torch.float32
+    return Compose(
         [
             LoadImaged(keys=[image_key], meta_key_postfix="meta_dict"),
             EnsureChannelFirstd(keys=[image_key]),
             EnsureTyped(keys=[image_key, box_key], dtype=torch.float32),
             EnsureTyped(keys=[label_key], dtype=torch.long),
-            StandardizeEmptyBoxd(box_keys=[box_key], box_ref_image_keys=image_key),
+            StandardizeEmptyBoxd(
+                box_keys=[box_key], box_ref_image_keys=image_key
+            ),
             Orientationd(keys=[image_key], axcodes="RAS"),
             intensity_transform,
             EnsureTyped(keys=[image_key], dtype=torch.float16),
@@ -188,7 +186,6 @@ def generate_detection_train_transform(
             EnsureTyped(keys=[label_key], dtype=torch.long),
         ]
     )
-    return train_transforms
 
 
 def generate_detection_val_transform(
@@ -217,18 +214,16 @@ def generate_detection_val_transform(
     Return:
         validation transform for detection
     """
-    if amp:
-        compute_dtype = torch.float16
-    else:
-        compute_dtype = torch.float32
-
-    val_transforms = Compose(
+    compute_dtype = torch.float16 if amp else torch.float32
+    return Compose(
         [
             LoadImaged(keys=[image_key], meta_key_postfix="meta_dict"),
             EnsureChannelFirstd(keys=[image_key]),
             EnsureTyped(keys=[image_key, box_key], dtype=torch.float32),
             EnsureTyped(keys=[label_key], dtype=torch.long),
-            StandardizeEmptyBoxd(box_keys=[box_key], box_ref_image_keys=image_key),
+            StandardizeEmptyBoxd(
+                box_keys=[box_key], box_ref_image_keys=image_key
+            ),
             Orientationd(keys=[image_key], axcodes="RAS"),
             intensity_transform,
             ConvertBoxToStandardModed(box_keys=[box_key], mode=gt_box_mode),
@@ -242,7 +237,6 @@ def generate_detection_val_transform(
             EnsureTyped(keys=label_key, dtype=torch.long),
         ]
     )
-    return val_transforms
 
 
 def generate_detection_inference_transform(
@@ -273,11 +267,7 @@ def generate_detection_inference_transform(
     Return:
         validation transform for detection
     """
-    if amp:
-        compute_dtype = torch.float16
-    else:
-        compute_dtype = torch.float32
-
+    compute_dtype = torch.float16 if amp else torch.float32
     test_transforms = Compose(
         [
             LoadImaged(keys=[image_key], meta_key_postfix="meta_dict"),
